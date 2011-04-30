@@ -13,6 +13,10 @@ class Portaudio < Formula
     [["--universal", "Build a universal binary."]]
   end
 
+  def options
+    [["--universal", "Build a universal binary."]]
+  end
+
   # Use the MacPort patches that fix compiling against newer OS X SDKs
   def patches
     {:p0 => [
