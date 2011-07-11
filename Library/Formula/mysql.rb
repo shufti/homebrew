@@ -2,8 +2,8 @@ require 'formula'
 
 class Mysql < Formula
   homepage 'http://dev.mysql.com/doc/refman/5.5/en/'
-  url 'http://downloads.mysql.com/archives/mysql-5.5/mysql-5.5.10.tar.gz'
-  md5 'ee604aff531ff85abeb10cf332c1355a'
+  url 'http://downloads.mysql.com/archives/mysql-5.5/mysql-5.5.14.tar.gz'
+  md5 '19f43bb9c72b1b5f7ff86a7f921c9244'
 
   depends_on 'cmake' => :build
   depends_on 'readline'
@@ -17,6 +17,7 @@ class Mysql < Formula
     [
       ['--with-tests', "Build with unit tests."],
       ['--with-embedded', "Build the embedded server."],
+      ['--with-libedit', "Compile with EditLine wrapper instead of readline"],
       ['--universal', "Make mysql a universal binary"],
       ['--enable-local-infile', "Build with local infile loading support"]
     ]
@@ -25,6 +26,9 @@ class Mysql < Formula
   def patches; DATA; end
 
   def install
+    # Make sure the var/msql directory exists
+    (var+"mysql").mkpath
+
     args = [".",
             "-DCMAKE_INSTALL_PREFIX=#{prefix}",
             "-DMYSQL_DATADIR=#{var}/mysql",
@@ -48,8 +52,11 @@ class Mysql < Formula
     # Build the embedded server
     args << "-DWITH_EMBEDDED_SERVER=ON" if ARGV.include? '--with-embedded'
 
+    # Compile with readline unless libedit is explicitly chosen
+    args << "-DWITH_READLINE=yes" unless ARGV.include? '--with-libedit'
+
     # Make universal for binding to universal applications
-    args << "-DCMAKE_OSX_ARCHITECTURES='ppc;i386'" if ARGV.build_universal?
+    args << "-DCMAKE_OSX_ARCHITECTURES='i386;x86_64'" if ARGV.build_universal?
 
     # Build with local infile loading support
     args << "-DENABLED_LOCAL_INFILE=1" if ARGV.include? '--enable-local-infile'
@@ -91,6 +98,8 @@ class Mysql < Formula
 
     Start mysqld manually with:
         mysql.server start
+
+        Note: if this fails, you probably forgot to run the first two steps up above
 
     A "/etc/my.cnf" from another install may interfere with a Homebrew-built
     server starting up correctly.
